@@ -1,0 +1,8 @@
+{
+  "name": "myseq-instruments",
+  "displayname": "myseq instruments",
+  "version": "1.6.0",
+  "description": "Hybrid radial/linear sequencing, mutable FM instruments, live effects, granular reverb, and real-time LTC/MIDI Time Code.",
+  "tags": ["audio", "synthesis", "fm", "polyphonic", "radial", "hybrid", "polymeter", "cellular", "generative", "granular", "percussion", "stereo", "sequencer", "effects", "glitch", "reverb", "smpte", "ltc", "mtc", "timecode", "sync"],
+  "max_version_min": "8.2.0"
+}
