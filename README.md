@@ -1,12 +1,12 @@
 # myseq instruments
 
-Instrumentos MSP para las cinco salidas de `myseq`. La primera implementación es `myseq.kick~`.
+Max/MSP instruments for the five outputs of `myseq`, plus generative sequencers, live effects, granular reverb, and timecode synchronization.
 
 ## `myseq.timecode~`
 
-Generador de sincronía con interfaz gráfica. El outlet izquierdo produce señal LTC/SMPTE sample-accurate; el derecho entrega bytes MIDI Time Code crudos y se conecta directamente a `midiout`.
+A real-time synchronization generator with an interactive GUI. The left outlet produces sample-accurate LTC/SMPTE audio; the right outlet emits raw MIDI Time Code bytes and can be connected directly to `midiout`.
 
-Soporta 24, 25, 29.97 drop-frame y 30 fps. MTC emite los ocho mensajes Quarter Frame y mensajes Full Time Code SysEx al arrancar, localizar, cambiar de velocidad o solicitar `fullframe`.
+It supports 24, 25, 29.97 drop-frame, and 30 fps. MTC emits all eight Quarter Frame messages plus Full Time Code SysEx messages when starting, locating, changing frame rate, or receiving `fullframe`.
 
 ```text
 myseq.timecode~
@@ -26,52 +26,52 @@ fullframe
 dump
 ```
 
-La salida LTC está destinada a una entrada de timecode, una pista de grabación o hardware de sincronía; no debe monitorizarse a volumen de escucha. Para generar LTC hay que activar el DSP de Max. El reloj MTC puede seguir funcionando aunque se silencie LTC.
+The LTC outlet is intended for a timecode input, a recording track, or synchronization hardware. Do not monitor it at normal listening levels. Max DSP must be enabled to generate LTC; the MTC clock can continue running while LTC is muted.
 
 ## `megaseq`
 
-`megaseq` conserva el motor completo de `myseq` y lo reorganiza como un instrumento radial. Tiene cinco anillos concéntricos y cinco outlets independientes, de izquierda a derecha:
+`megaseq` retains the complete `myseq` engine and reorganizes it as a radial composition instrument. It has five concentric rings and five independent outlets, from left to right:
 
-1. kick, canal MIDI 1
-2. snare, canal MIDI 2
-3. hihat, canal MIDI 5
-4. melody, canal MIDI 3
-5. bass, canal MIDI 4
+1. kick, MIDI channel 1
+2. snare, MIDI channel 2
+3. hihat, MIDI channel 5
+4. melody, MIDI channel 3
+5. bass, MIDI channel 4
 
-Cada outlet entrega listas compatibles con los instrumentos modulares:
+Each outlet emits lists compatible with the modular instruments:
 
 ```text
 pitch velocity duration_ms channel
 ```
 
-El secuenciador incluye los mismos sistemas de patrones, Euclid, spray, ratchets, escalas, motif, progression, Markov, Delaunay/Voronoi, fluid, pollution, composer, arpeggiator, automatización reversible, escenas, morph, locks y bancos persistentes de `myseq`.
+The sequencer includes pattern editing, Euclidean rhythms, spray, ratchets, scales, motifs, progressions, Markov transitions, Delaunay/Voronoi geometry, fluid and pollution systems, composer logic, arpeggiation, reversible automation, scenes, morphing, locks, and persistent banks.
 
-La interacción también es radial:
+The interaction model is radial:
 
-- Los cinco anillos son kick, snare, hihat, melody y bass; se pueden pintar pasos directamente.
-- El núcleo central edita root, scale y las doce pitch classes.
-- Los ocho satélites exteriores son escenas; Alt-click almacena y click recupera.
-- El navegador lateral organiza voz, sección, página musical, automatización, diagnósticos y banco en una jerarquía limpia y directa.
-- El deck inferior organiza el banco activo en una sola fila de módulos verticales compactos, sin invadir el radial.
-- El anillo de energía interior edita los 16 puntos de la curva de frase.
+- The five rings represent kick, snare, hihat, melody, and bass; steps can be painted directly.
+- The central core edits root, scale, and all twelve pitch classes.
+- The eight outer satellites are scenes; Alt-click stores and click recalls.
+- The side navigator organizes voice, section, music page, automation, diagnostics, and bank controls.
+- The lower deck presents the active control bank as one compact row without covering the radial editor.
+- The inner energy ring edits the 16 points of the phrase curve.
 
 ### Hybrid Rhythm Lab
 
-La página `RHYTHM` mezcla las dos lecturas del secuenciador: mantiene las cinco órbitas radiales y abre un `Rhythm Ribbon` compacto debajo del círculo para pintar pasos con precisión, sin taparlo. Las celdas de color muestran la predicción del algoritmo; los marcadores blancos muestran el patrón manual. Ambos estratos se mezclan realmente en el disparo.
+The `RHYTHM` page combines radial and linear sequencing. It keeps the five radial orbits while opening a compact `Rhythm Ribbon` below the circle for precise step editing. Colored cells display the algorithmic prediction; white markers show the manual pattern. Both layers are blended by the trigger engine.
 
-Cada voz puede usar un motor independiente:
+Each voice can run an independent rhythm engine:
 
-- `original`: conserva el comportamiento clásico de `myseq`.
-- `euclid`: distribuye pulsos uniformemente dentro del ciclo.
-- `polymeter`: transforma la distribución usando un ciclo independiente por voz.
-- `clave`: aplica esqueletos sincopados adaptados a kick, snare, hihat, melody y bass.
-- `cellular`: genera ritmos mediante autómatas celulares evolutivos.
-- `burst`: libera grupos de eventos cerca de los límites de frase.
-- `hybrid`: combina votación Euclid/clave/cellular con acentos dinámicos.
+- `original`: preserves the classic `myseq` behavior.
+- `euclid`: distributes pulses evenly across the cycle.
+- `polymeter`: reshapes the distribution with an independent cycle length per voice.
+- `clave`: applies syncopated rhythmic skeletons adapted to each voice.
+- `cellular`: produces evolving patterns with cellular automata.
+- `burst`: releases event clusters near phrase boundaries.
+- `hybrid`: combines Euclidean, clave, and cellular votes with dynamic accents.
 
-Los controles `PULSE COUNT`, `POLYMETER CYCLE`, `ORBIT ROTATION`, `RHYTHM VARIATION`, `SYNCOPATION`, `GHOST NOTES` y `PATTERN EVOLUTION` son específicos para la voz seleccionada. Escenas, morph y `savebank` almacenan el estado completo de estos motores.
+`PULSE COUNT`, `POLYMETER CYCLE`, `ORBIT ROTATION`, `RHYTHM VARIATION`, `SYNCOPATION`, `GHOST NOTES`, and `PATTERN EVOLUTION` are specific to the selected voice. Scenes, morphing, and `savebank` preserve the complete rhythm-engine state.
 
-Uso básico y ruteo modular:
+Basic modular routing:
 
 ```text
 megaseq
@@ -95,23 +95,23 @@ outlet 5 -> myseq.bass~
 
 ## `myseq.kick~`
 
-Recibe directamente el evento producido por la salida de kick del secuenciador:
+Receives the event generated by the sequencer's kick outlet:
 
 ```text
 pitch velocity duration_ms channel
 ```
 
-Ejemplo:
+Example:
 
 ```text
 36 116 260 1
 ```
 
-El instrumento tiene una interfaz gráfica redimensionable, ocho voces, síntesis FM transitoria, envolvente tonal, click de ruido filtrado, saturación y sobremuestreo 2×. `clear` o `panic` apagan todas las voces. `bang` dispara el kick predeterminado.
+The instrument provides a resizable GUI, eight voices, transient FM synthesis, a tonal envelope, filtered-noise click, saturation, and 2x oversampling. `clear` or `panic` stops every voice; `bang` triggers the default kick.
 
-Los gates cortos producidos por el secuenciador no recortan la cola del bombo: `decay` establece su duración mínima y `duration_ms` puede extenderla.
+Short sequencer gates do not cut off the kick tail. `decay` defines its minimum duration, while `duration_ms` can extend it.
 
-Parámetros principales:
+Main parameters:
 
 ```text
 decay 260
@@ -129,27 +129,27 @@ channel 1
 omni 0
 ```
 
-También se pueden definir al crear el objeto:
+Parameters can also be supplied as object attributes:
 
 ```text
 myseq.kick~ @decay 320 @fmindex 3.2 @drive 0.45
 ```
 
-## Interfaz y mutación
+### Interface and mutation
 
-La GUI incluye:
+The GUI includes:
 
-- Osciloscopio y medidor de salida en tiempo real.
-- Plano XY entre cuatro identidades: `DEEP`, `PUNCH`, `CLICK` y `METAL`.
-- Trayectoria visible de la mutación automática.
-- Diez controles editables de cuerpo, pitch, FM, click, drive y nivel.
-- Marcadores separados para el valor manual y el valor efectivo después del morph.
-- Controles de cantidad, velocidad y mezcla de morph.
-- Botones de audición, mutación, congelación y randomización.
+- A real-time oscilloscope and output meter.
+- An XY field between `DEEP`, `PUNCH`, `CLICK`, and `METAL` identities.
+- A visible automatic-mutation trajectory.
+- Ten editable body, pitch, FM, click, drive, and level controls.
+- Separate markers for the manual value and the effective post-morph value.
+- Mutation amount, rate, and morph-mix controls.
+- Audition, mutation, freeze, and randomization buttons.
 
-Arrastra horizontalmente los controles. Arrastra dentro del campo XY para cambiar de carácter. Un doble click sobre un control restaura su valor predeterminado.
+Drag controls horizontally. Drag inside the XY field to change character. Double-click a control to restore its default value.
 
-Mensajes de performance:
+Performance messages:
 
 ```text
 character deep
@@ -166,43 +166,22 @@ seed 12345
 dump
 ```
 
-Después de recompilar una versión ya cargada, reinicia Max para que descargue de memoria el `.mxo` anterior y cargue la GUI nueva.
+After rebuilding a version that Max has already loaded, restart Max so it releases the previous `.mxo` from memory and loads the new GUI.
 
-El encabezado muestra `DSP ON` cuando el instrumento forma parte de una cadena de audio activa. Si muestra `DSP OFF`, activa `ezdac~` o revisa la conexión de señal. Los eventos recibidos con DSP apagado no se acumulan en la cola.
-
-## Pruebas del núcleo DSP
-
-No requieren el Max SDK:
-
-```sh
-cmake -S . -B build-test -DMYSEQ_BUILD_EXTERNALS=OFF
-cmake --build build-test
-ctest --test-dir build-test --output-on-failure
-```
-
-## Compilación del external
-
-CMake detecta automáticamente las instalaciones habituales, incluida `/Applications/max-sdk-main`. Si no encuentra una copia local, descarga `max-sdk-base` de Cycling '74. También se puede indicar una ruta explícita:
-
-```sh
-cmake -S . -B build -DMAX_SDK_BASE_DIR=/ruta/a/max-sdk-base
-cmake --build build --config Release
-```
-
-En macOS el resultado se genera en `externals/myseq.kick~.mxo` como binario universal Intel/Apple Silicon.
+The header displays `DSP ON` when the instrument belongs to an active audio chain. If it displays `DSP OFF`, enable `ezdac~` or check the signal connection. Events received while DSP is disabled are not accumulated in the queue.
 
 ## `myseq.snare~`
 
-Recibe directamente la segunda salida de `myseq` (`pitch velocity duration_ms channel`, canal 2). Combina dos modos resonantes, ruido filtrado, transient snap, rattle, FM y saturación con ocho voces y sobremuestreo 2×.
+Receives the second `myseq` outlet (`pitch velocity duration_ms channel`, channel 2). It combines two resonant modes, filtered noise, transient snap, rattle, FM, saturation, eight voices, and 2x oversampling.
 
-La GUI interpola entre cuatro identidades:
+The GUI interpolates between four identities:
 
-- `TIGHT`: corto, preciso y con ataque marcado.
-- `WOOD`: cuerpo modal grave y menos ruido.
-- `AIR`: cola de ruido amplia y rattle móvil.
-- `METAL`: relaciones inarmónicas y FM intensa.
+- `TIGHT`: short, precise, and strongly articulated.
+- `WOOD`: low modal body with less noise.
+- `AIR`: a wide noise tail with mobile rattle.
+- `METAL`: inharmonic ratios and intense FM.
 
-Además de la mutación continua, `VARIATION` genera pequeñas diferencias deterministas en afinación modal, color y rattle en cada golpe.
+In addition to continuous mutation, `VARIATION` produces small deterministic changes in modal tuning, color, and rattle for every hit.
 
 ```text
 character tight
@@ -218,26 +197,26 @@ randomize
 seed 24680
 ```
 
-El objeto no necesita argumentos:
+The object requires no arguments:
 
 ```text
 myseq.snare~
 ```
 
-Después de recompilar, reinicia Max y conecta la segunda salida de `myseq` a `myseq.snare~`.
+Connect the second `myseq` outlet to `myseq.snare~`.
 
 ## `myseq.melody~`
 
-Sintetizador melódico estéreo para la cuarta salida de `myseq` (canal MIDI 3). Es polifónico a 12 voces y combina un núcleo FM/wavefold con hasta 128 granos, dispersión afinada, paneo por grano y delay cruzado estéreo. El procesamiento interno usa sobremuestreo 2×.
+A stereo melodic synthesizer for the fourth `myseq` outlet (MIDI channel 3). It is 12-voice polyphonic and combines an FM/wavefold core with up to 128 grains, tuned dispersion, per-grain panning, and stereo cross-delay. Internal nonlinear processing uses 2x oversampling.
 
-Las cuatro identidades del campo XY son:
+The four XY identities are:
 
-- `GLASS`: granos cristalinos, consonantes y brillantes.
-- `BLOOM`: ataques suaves, colas largas y un centro tonal cálido.
-- `DUST`: nube granular corta, dispersa y puntillista.
-- `ORBIT`: FM, fold, drift y feedback más radicales.
+- `GLASS`: crystalline, consonant, bright grains.
+- `BLOOM`: soft attacks, long tails, and a warm tonal center.
+- `DUST`: short, scattered, pointillistic granular clouds.
+- `ORBIT`: more radical FM, fold, drift, and feedback.
 
-`HARMONICITY` interpola entre intervalos consonantes y fracturados, por lo que es posible llevar el instrumento hacia territorio avant-garde sin perder completamente el ancla musical. Cada nota captura el estado efectivo del morph y puede coexistir con notas anteriores.
+`HARMONICITY` interpolates between consonant and fractured intervals, allowing the instrument to move into avant-garde territory without completely losing its musical anchor. Each note captures the effective morph state and can coexist with older notes.
 
 ```text
 character glass
@@ -252,32 +231,32 @@ randomize
 panic
 ```
 
-No necesita argumentos:
+The object requires no arguments:
 
 ```text
 myseq.melody~
 ```
 
-También admite atributos al crearlo, por ejemplo:
+Attributes are also accepted at creation time:
 
 ```text
 myseq.melody~ @density 36 @grainsize 120 @harmonicity 0.9 @feedback 0.3
 ```
 
-Conecta la salida 4 de `myseq` a su entrada y sus dos salidas de señal a los canales izquierdo y derecho. Activa `ezdac~` antes de iniciar el secuenciador.
+Connect `myseq` outlet 4 to its inlet and route both signal outlets to the left and right channels. Enable `ezdac~` before starting the sequencer.
 
 ## `myseq.mega~`
 
-Sintetizador estéreo polifónico de 16 voces para las listas MIDI de `myseq`. Cada voz combina una red FM de seis operadores y cuatro topologías con un megaoscilador de seno, triángulo, sub y masa unísona. Incluye wavefold, ring modulation, caos determinista, filtro resonante, transitorios, dimensión estéreo y cuatro procesos de glitch de corta duración. Todo el núcleo no lineal trabaja con sobremuestreo 2×.
+A 16-voice polyphonic stereo synthesizer for `myseq` MIDI-event lists. Each voice combines a six-operator FM network with four topologies and a mega-oscillator containing sine, triangle, sub, and unison mass. It also provides wavefolding, ring modulation, deterministic chaos, a resonant filter, transients, stereo dimension, and four short glitch processes. The nonlinear core uses 2x oversampling.
 
-`INTELLIGENCE` acerca las relaciones de los operadores y la mutación hacia proporciones armónicas estables. Al bajarlo, `RATIO SPREAD`, `VOICE MUTATION`, `CHAOS` y `GLITCH` pueden producir estructuras más fracturadas sin cambiar el pitch MIDI recibido.
+`INTELLIGENCE` pulls operator ratios and mutation toward stable harmonic proportions. At lower values, `RATIO SPREAD`, `VOICE MUTATION`, `CHAOS`, and `GLITCH` can create more fractured structures without changing the incoming MIDI pitch.
 
-Organismos del campo XY:
+XY-field organisms:
 
-- `GRID`: articulación precisa, relaciones consonantes y glitches rítmicos discretos.
-- `SWARM`: megaoscilador, unison, detune y dimensión estéreo.
-- `CRYSTAL`: FM brillante, wavefold y resonancia musical.
-- `FRACTURE`: topologías complejas, ring modulation, caos y glitch agresivo.
+- `GRID`: precise articulation, consonant ratios, and restrained rhythmic glitches.
+- `SWARM`: mega-oscillator, unison, detune, and stereo dimension.
+- `CRYSTAL`: bright FM, wavefolding, and musical resonance.
+- `FRACTURE`: complex topologies, ring modulation, chaos, and aggressive glitch.
 
 ```text
 myseq.mega~
@@ -293,20 +272,20 @@ preset 1 recall
 panic
 ```
 
-Recibe `pitch velocity duration_ms channel`; por defecto escucha el canal 3. La GUI incluye 20 controles, osciloscopio estéreo, contador de voces/glitches, presets persistentes, tooltips y feedback visual de todos los botones.
+It receives `pitch velocity duration_ms channel` and listens to channel 3 by default. The GUI includes 20 controls, a stereo oscilloscope, voice/glitch counters, persistent presets, tooltips, and visual feedback for every button.
 
 ## `myseq.hihat~`
 
-Hi-hat estéreo mutable para la tercera salida de `myseq` (canal MIDI 5). Combina seis osciladores metálicos inarmónicos, ring modulation, FM, ruido con high-pass dinámico, strike transitorio, sizzle, saturación y sobremuestreo 2×.
+A mutable stereo hi-hat for the third `myseq` outlet (MIDI channel 5). It combines six inharmonic metallic oscillators, ring modulation, FM, noise with a dynamic high-pass filter, transient strike, sizzle, saturation, and 2x oversampling.
 
-El parámetro `OPENNESS` interpola entre las envolventes `CLOSED DECAY` y `OPEN DECAY`. Un golpe cerrado estrangula automáticamente las colas abiertas anteriores; una duración MIDI larga también puede abrir la articulación.
+`OPENNESS` interpolates between the `CLOSED DECAY` and `OPEN DECAY` envelopes. A closed hit automatically chokes previous open tails; a long MIDI duration can also open the articulation.
 
-Identidades del campo XY:
+XY-field identities:
 
-- `TIGHT`: cerrado, brillante, preciso y centrado.
-- `SILK`: aire suave, ruido amplio y estéreo.
-- `TRASH`: metal áspero, oscuro y saturado.
-- `ALIEN`: FM intensa, afinación extraña y movimiento espacial.
+- `TIGHT`: closed, bright, precise, and centered.
+- `SILK`: soft air, wide noise, and stereo spread.
+- `TRASH`: rough, dark, saturated metal.
+- `ALIEN`: intense FM, unusual tuning, and spatial motion.
 
 ```text
 character tight
@@ -322,26 +301,50 @@ randomize
 panic
 ```
 
-No requiere argumentos:
+The object requires no arguments:
 
 ```text
 myseq.hihat~
 ```
 
-También puede configurarse al crearlo:
+It can also be configured at creation time:
 
 ```text
 myseq.hihat~ @openness 0.2 @brightness 0.85 @inharmonicity 0.9 @spread 0.7
 ```
 
-Conecta la salida 3 de `myseq` a la entrada de `myseq.hihat~` y las dos salidas de señal a izquierda/derecha.
+Connect `myseq` outlet 3 to `myseq.hihat~` and route its two signal outlets left and right.
 
-## Presets de usuario persistentes
+## `myseq.bass~`
 
-Los cinco instrumentos, `myseq.fx~` y `myseq.sprayverb~` tienen 16 slots propios. Guardan todos los parámetros manuales, el campo de performance/morph y su configuración de movimiento o mutación. Los bancos predeterminados viven en `~/.myseq/presets/` y se cargan automáticamente al crear el objeto.
+A polyphonic stereo bass for the fifth `myseq` outlet (MIDI channel 4). It combines a mono-compatible sub, stereo triangle/saw body, FM synthesis, wavefolding, a resonant four-stage filter, filter envelope, saturation, and glide.
+
+XY-field identities:
+
+- `SUB`: clean, centered, deep bass.
+- `FUNK`: short attack, dynamic filter, and percussive body.
+- `REESE`: wide, detuned, folded, and aggressive.
+- `ACID`: high resonance, filter modulation, and pronounced glide.
 
 ```text
-preset 1 store MiSonido
+character sub
+character funk
+character reese
+character acid
+morph 0.3 0.75 1.
+mutate 1 0.45 0.09
+preset 1 store MyBass
+preset 1 recall
+```
+
+Connect `myseq` outlet 5 to `myseq.bass~`; its two signal outlets are left and right.
+
+## Persistent user presets
+
+The five instruments, `myseq.fx~`, and `myseq.sprayverb~` each provide 16 independent slots. Presets retain all manual parameters, the performance/morph field, and motion or mutation settings. Default banks are stored in `~/.myseq/presets/` and load automatically when an object is created.
+
+```text
+preset 1 store MySound
 preset 1 recall
 preset 1 clear
 preset list
@@ -349,20 +352,20 @@ preset save
 preset load
 ```
 
-`preset store` y `preset clear` escriben inmediatamente el banco predeterminado. Para exportar o importar otro banco se puede añadir una ruta:
+`preset store` and `preset clear` immediately write the default bank. Add a path to export or import another bank:
 
 ```text
-preset save /ruta/mis_bajos.bank
-preset load /ruta/mis_bajos.bank
+preset save /path/to/my_basses.bank
+preset load /path/to/my_basses.bank
 ```
 
-Este protocolo funciona igual en `myseq.kick~`, `myseq.snare~`, `myseq.hihat~`, `myseq.melody~`, `myseq.bass~`, `myseq.fx~` y `myseq.sprayverb~`.
+The same protocol works in `myseq.kick~`, `myseq.snare~`, `myseq.hihat~`, `myseq.melody~`, `myseq.bass~`, `myseq.fx~`, and `myseq.sprayverb~`.
 
-## Tooltips contextuales
+## Contextual tooltips
 
-Las siete interfaces muestran ayuda después de mantener el puntero aproximadamente 260 ms sobre un elemento. Los tooltips incluyen el valor efectivo y explican controles de síntesis/procesamiento, campo XY, caracteres, botones de performance, los 16 slots de preset y los macrocontroles inferiores.
+The instrument and effect interfaces display contextual help after the pointer remains over an element for approximately 260 ms. Tooltips include the effective value and explain synthesis or processing controls, the XY field, characters, performance buttons, all 16 preset slots, and the lower macro controls.
 
-Están activos de forma predeterminada. Se pueden desactivar desde el Inspector o al crear cualquier instrumento:
+Tooltips are enabled by default. Disable them from the Inspector or at object creation:
 
 ```text
 myseq.kick~ @tooltips 0
@@ -372,15 +375,16 @@ myseq.melody~ @tooltips 0
 myseq.bass~ @tooltips 0
 myseq.fx~ @tooltips 0
 myseq.sprayverb~ @tooltips 0
+myseq.timecode~ @tooltips 0
 ```
 
 ## `myseq.fx~`
 
-Procesador multiefectos estéreo para performance en vivo. Se inserta después de cualquiera de los instrumentos y mantiene un buffer circular de ocho segundos para stutter, freeze y capturas glitch. También incluye reverse continuo, jitter de velocidad, feedback, bit crush, decimación, ring modulation, filtro, expansión estéreo, drive y dry/wet.
+A stereo multi-effect processor for live performance. Insert it after any instrument. It maintains an eight-second circular buffer for stutter, freeze, and glitch captures, and also provides continuous reverse, speed jitter, feedback, bit crushing, decimation, ring modulation, filtering, stereo expansion, drive, and dry/wet control.
 
-Tiene dos entradas y dos salidas de señal. Si la fuente es mono, conecta únicamente la entrada izquierda: el external la copia automáticamente a ambos canales.
+It has two signal inputs and two signal outputs. For a mono source, connect only the left input; the external automatically copies it to both channels.
 
-Acciones de performance:
+Performance actions:
 
 ```text
 stutter 1
@@ -399,15 +403,15 @@ randomize
 clear
 ```
 
-El campo XY mezcla los parámetros manuales con un macro de fragmentación/destrucción; `MOTION` recorre ese campo automáticamente. Los botones `STUTTER` y `FREEZE` quedan activados hasta volver a pulsarlos, mientras `GLITCH` es momentáneo.
+The XY field blends manual parameters with a fragmentation/destruction macro; `MOTION` automatically travels through that field. `STUTTER` and `FREEZE` remain latched until pressed again, while `GLITCH` is momentary.
 
-`myseq.fx~` también tiene 16 presets persistentes independientes, tooltips contextuales y los mismos botones `STORE`, `SAVE` y `LOAD` de los instrumentos.
+`myseq.fx~` also provides 16 independent persistent presets, contextual tooltips, and the same `STORE`, `SAVE`, and `LOAD` controls as the instruments.
 
 ## `myseq.sprayverb~`
 
-Reverb granular estéreo con un visualizador de partículas alimentado por los eventos reales de emisión de granos. Combina hasta 96 granos, historial estéreo, shimmer, modulación y una red FDN de ocho líneas.
+A stereo granular reverb with a particle visualizer driven by real grain-emission events. It combines up to 96 grains, stereo history, shimmer, modulation, and an eight-line FDN.
 
-Su sistema `BREATH` crea espacios atmosféricos generativos: reduce la densidad y la intensidad de la nube, deja respirar el material seco y después libera automáticamente un spray granular. `SPACE` provoca manualmente un ciclo de vacío y liberación; `BURST` suelta la nube inmediatamente.
+Its `BREATH` system creates generative atmospheric space by lowering cloud density and intensity, exposing the dry material, and then automatically releasing a granular spray. `SPACE` manually triggers a void-and-release cycle; `BURST` releases the cloud immediately.
 
 ```text
 space
@@ -425,30 +429,27 @@ randomize
 clear
 ```
 
-Tiene entrada y salida estéreo, copia mono automática desde la entrada izquierda, 16 presets persistentes, tooltips y cuatro atmósferas base. `FREEZE` detiene la entrada y mantiene la red de difusión cerca de una cola infinita.
+It provides stereo input and output, automatic mono copying from the left input, 16 persistent presets, tooltips, and four base atmospheres. `FREEZE` stops new input and keeps the diffusion network close to an infinite tail.
 
-Cada GUI incluye además dos filas de ocho slots. Haz click en un slot para recuperarlo; pulsa `STORE` y después un slot para guardarlo. Alt-click sobre un slot guarda directamente. `SAVE` escribe el banco persistente y `LOAD` vuelve a leerlo desde disco.
+Each GUI also includes two rows of eight preset slots. Click a slot to recall it; press `STORE` and then a slot to capture the current state. Alt-click stores directly. `SAVE` writes the persistent bank, and `LOAD` reads it from disk.
 
-## `myseq.bass~`
+## Standalone DSP tests
 
-Bajo estéreo polifónico para la quinta salida de `myseq` (canal MIDI 4). Combina subgrave mono-compatible, cuerpo triangle/saw estéreo, síntesis FM, wavefolding, filtro resonante de cuatro etapas, envolvente de filtro, saturación y glide.
+The tests do not require the Max SDK:
 
-Identidades del campo XY:
-
-- `SUB`: grave limpio, centrado y profundo.
-- `FUNK`: ataque corto, filtro dinámico y cuerpo percusivo.
-- `REESE`: ancho, detuned, plegado y agresivo.
-- `ACID`: resonancia, modulación de filtro y glide pronunciado.
-
-```text
-character sub
-character funk
-character reese
-character acid
-morph 0.3 0.75 1.
-mutate 1 0.45 0.09
-preset 1 store MiBajo
-preset 1 recall
+```sh
+cmake -S . -B build-test -DMYSEQ_BUILD_EXTERNALS=OFF
+cmake --build build-test
+ctest --test-dir build-test --output-on-failure
 ```
 
-Conecta la salida 5 de `myseq` a `myseq.bass~`; sus dos salidas de señal son izquierda y derecha.
+## Building the externals
+
+CMake automatically detects common Max SDK installations, including `/Applications/max-sdk-main`. If it cannot find a local copy, it fetches Cycling '74's `max-sdk-base`. An explicit path can also be supplied:
+
+```sh
+cmake -S . -B build -DMAX_SDK_BASE_DIR=/path/to/max-sdk-base
+cmake --build build --config Release
+```
+
+On macOS, universal Intel/Apple Silicon bundles are generated in `externals/`.
