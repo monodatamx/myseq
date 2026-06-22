@@ -1,3 +1,4 @@
 /build/
 /build-*/
+/externals/myseq.timecode~.mxo/
 .DS_Store
