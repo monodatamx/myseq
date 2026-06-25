@@ -1,4 +1,8 @@
 /build/
 /build-*/
 /externals/myseq.timecode~.mxo/
+/source/
+/help/
+/tests/
+/CMakeLists.txt
 .DS_Store
