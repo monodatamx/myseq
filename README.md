@@ -4,11 +4,11 @@ Max/MSP instruments for the five outputs of `myseq`, plus generative sequencers,
 
 ## `myseq.polydrum~`
 
-`myseq.polydrum~` is a procedural drum synthesizer and shared-pulse groove composer. It now has its own synthesis engine instead of reusing the granular drum core: kick, snare, hat, clap, tom, rim, shaker, and fx are rendered as dedicated FM/physical/noise drum voices with bounded variation.
+`myseq.polydrum~` is a procedural drum synthesizer module designed to be sequenced externally by `megaseq`. It has its own synthesis engine instead of reusing the granular drum core: kick, snare, hat, clap, tom, rim, shaker, and fx are rendered as dedicated FM/physical/noise drum voices with bounded variation.
 
-The eight voices are `kick`, `snare`, `hat`, `clap`, `tom`, `rim`, `shaker`, and `fx`. Each voice owns `cycle`, `pulses`, `rotation`, `probability`, `repeat`, `nudge`, `tune`, and `gain`. Global macros shape the complete system: `groove`, `euclid`, `repeat`, `fill`, `body`, `transient`, `variation`, and `room`.
+The eight voices are `kick`, `snare`, `hat`, `clap`, `tom`, `rim`, `shaker`, and `fx`. Each voice owns `body`, `punch`, `fmratio`, `fmindex`, `noise`, `pan`, `tune`, and `gain`. Global macros shape the complete system: `input dynamics`, `transient flam`, `morph memory`, `grain scatter`, `repeat energy`, `body color`, `transient`, `mutation`, and `room`.
 
-It can run from its own clock or react to standard `myseq` / `megaseq` events:
+It reacts to standard `myseq` / `megaseq` events:
 
 ```text
 pitch velocity duration_ms channel
@@ -22,21 +22,21 @@ stop
 reset
 variant
 tempo 137.
-param groove 0.85
-param euclid 0.28
+param dynamics 0.85
+param scatter 0.28
 param repeat 0.22
-param fill 0.30
 param body 0.46
 param transient 0.64
-poly kick 16 4 0 0.95
-poly hat 16 8 0 0.82
-poly snare 16 2 12 0.88
-voice shaker nudge 0.56
+voice kick body 0.76
+voice clap fmindex 0.62
+voice shaker pan 0.56
 voice fx tune 0.58
 trigger rim 1.
 env kick fm 2 0.06 0.92
 env kick pitch 3 0.24 0.18
 env snare noise 3 0.18 0.55
+envadd kick fm 0.33 0.88
+envremove kick fm 4
 envreset kick fm
 preset 1 store DeepGrid
 preset 1 recall
@@ -44,9 +44,9 @@ savebank
 loadbank
 ```
 
-The GUI shows a shared 16-step groove grid: each lane displays its voice pattern, current cursor, pulse/cycle relationship, and meter. Click a lane to select/audition it, then edit its rhythm and synthesis behaviour from the lower controls.
+The GUI shows a voice bay instead of an internal sequencer. Click a voice to select/audition it, watch its meter, then edit synthesis behavior from the lower controls. Pattern editing belongs in `megaseq`, which now has dedicated percussion outputs for all Polydrum voices.
 
-Each voice also has an editable envelope graph with four tabs: `AMP`, `PITCH`, `FM`, and `NOISE`. These are not cosmetic curves: `AMP` shapes final level, `PITCH` controls pitch drop/rise, `FM` controls modulation depth and metallicity, and `NOISE` controls transient/noise energy. Drag the five breakpoints in the GUI or send `env <voice> <amp|pitch|fm|noise> <point 1-5> <time 0-1> <value 0-1>`. Presets are stored at `~/Documents/Max 9/Library/myseq.polydrum.bank.txt` and include all envelope graphs.
+Each voice also has an editable envelope graph with four tabs: `AMP`, `PITCH`, `FM`, and `NOISE`. These are not cosmetic curves: `AMP` shapes final level, `PITCH` controls pitch drop/rise, `FM` controls modulation depth and metallicity, and `NOISE` controls transient/noise energy. Drag breakpoints in the GUI, Option-click empty envelope space to add a point, or Option-click an inner point to remove it. Each curve supports 2–16 points. Presets are stored at `~/Documents/Max 9/Library/myseq.polydrum.bank.txt` and include all envelope graphs.
 
 ## `myseq.grainmachine~`
 
@@ -389,13 +389,18 @@ The LTC outlet is intended for a timecode input, a recording track, or synchroni
 
 ## `megaseq`
 
-`megaseq` retains the complete `myseq` engine and reorganizes it as a radial composition instrument. It has five concentric rings and five independent outlets, from left to right:
+`megaseq` is the radial composition brain for the suite. The current MXO keeps the first five outlets compatible with the original `myseq` routing and adds five dedicated percussion outlets for `myseq.polydrum~`, from left to right:
 
 1. kick, MIDI channel 1
 2. snare, MIDI channel 2
 3. hihat, MIDI channel 5
 4. melody, MIDI channel 3
 5. bass, MIDI channel 4
+6. clap, MIDI channel 6
+7. tom, MIDI channel 7
+8. rim, MIDI channel 8
+9. shaker, MIDI channel 9
+10. fx, MIDI channel 10
 
 Each outlet emits lists compatible with the modular instruments:
 
@@ -403,7 +408,7 @@ Each outlet emits lists compatible with the modular instruments:
 pitch velocity duration_ms channel
 ```
 
-The sequencer includes pattern editing, Euclidean rhythms, spray, ratchets, scales, motifs, progressions, Markov transitions, Delaunay/Voronoi geometry, fluid and pollution systems, composer logic, arpeggiation, reversible automation, scenes, morphing, locks, and persistent banks.
+The expanded percussion bus is intentionally aligned with `myseq.polydrum~`: connect outlets 1, 2, 3, 6, 7, 8, 9, and 10 into Polydrum to drive kick, snare, hat, clap, tom, rim, shaker, and fx. Outlets 4 and 5 remain melody and bass for the existing synth modules.
 
 The interaction model is radial:
 
@@ -450,6 +455,11 @@ outlet 2 -> myseq.snare~
 outlet 3 -> myseq.hihat~
 outlet 4 -> myseq.melody~
 outlet 5 -> myseq.bass~
+outlet 6 -> myseq.polydrum~ (clap)
+outlet 7 -> myseq.polydrum~ (tom)
+outlet 8 -> myseq.polydrum~ (rim)
+outlet 9 -> myseq.polydrum~ (shaker)
+outlet 10 -> myseq.polydrum~ (fx)
 ```
 
 ## `myseq.kick~`
