@@ -1,8 +1,8 @@
 {
   "name": "myseq-instruments",
   "displayname": "myseq instruments",
-  "version": "1.6.0",
-  "description": "Hybrid radial/linear sequencing, mutable FM instruments, live effects, granular reverb, and real-time LTC/MIDI Time Code.",
-  "tags": ["audio", "synthesis", "fm", "polyphonic", "radial", "hybrid", "polymeter", "cellular", "generative", "granular", "percussion", "stereo", "sequencer", "effects", "glitch", "reverb", "smpte", "ltc", "mtc", "timecode", "sync"],
+  "version": "2.7.1",
+  "description": "Generative sequencing, mutable instruments, procedural groove drum synthesis with editable FM envelopes, real-time vocal looping, real-time-safe stereo recording, MIDI scale translation, hybrid mixing, organic spatialization, complex effects, and spectral visualization.",
+  "tags": ["audio", "polyrhythm", "euclidean", "drum-machine", "drums", "granular-drums", "inverse-synthesis", "resynthesis", "sampler", "looper", "voice", "vocal", "overdub", "recorder", "recording", "studio", "wav", "rf64", "dither", "preroll", "midi", "router", "transpose", "scale", "quantizer", "diatonic", "synthesis", "fm", "envelope", "breakpoint", "polyphonic", "radial", "hybrid", "mixer", "console", "audio-interface", "meter", "polymeter", "cellular", "generative", "granular", "percussion", "stereo", "multichannel", "spatial-audio", "ambisonics", "speaker-layout", "sequencer", "effects", "glitch", "reverb", "smpte", "ltc", "mtc", "timecode", "sync", "analyzer", "spectrum", "spectrogram", "phase", "physical-modeling", "karplus-strong", "lsystem", "reaction-diffusion", "filter", "delay", "buffer", "resonator", "modulation"],
   "max_version_min": "8.2.0"
 }
