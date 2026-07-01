@@ -1,6 +1,365 @@
 # myseq instruments
 
-Max/MSP instruments for the five outputs of `myseq`, plus generative sequencers, live effects, granular reverb, and timecode synchronization.
+Max/MSP instruments for the five outputs of `myseq`, plus generative sequencers, live effects, granular reverb, real-time vocal looping, experimental drum synthesis, and timecode synchronization.
+
+## `myseq.polydrum~`
+
+`myseq.polydrum~` is a procedural drum synthesizer and shared-pulse groove composer. It now has its own synthesis engine instead of reusing the granular drum core: kick, snare, hat, clap, tom, rim, shaker, and fx are rendered as dedicated FM/physical/noise drum voices with bounded variation.
+
+The eight voices are `kick`, `snare`, `hat`, `clap`, `tom`, `rim`, `shaker`, and `fx`. Each voice owns `cycle`, `pulses`, `rotation`, `probability`, `repeat`, `nudge`, `tune`, and `gain`. Global macros shape the complete system: `groove`, `euclid`, `repeat`, `fill`, `body`, `transient`, `variation`, and `room`.
+
+It can run from its own clock or react to standard `myseq` / `megaseq` events:
+
+```text
+pitch velocity duration_ms channel
+```
+
+Common messages:
+
+```text
+start
+stop
+reset
+variant
+tempo 137.
+param groove 0.85
+param euclid 0.28
+param repeat 0.22
+param fill 0.30
+param body 0.46
+param transient 0.64
+poly kick 16 4 0 0.95
+poly hat 16 8 0 0.82
+poly snare 16 2 12 0.88
+voice shaker nudge 0.56
+voice fx tune 0.58
+trigger rim 1.
+env kick fm 2 0.06 0.92
+env kick pitch 3 0.24 0.18
+env snare noise 3 0.18 0.55
+envreset kick fm
+preset 1 store DeepGrid
+preset 1 recall
+savebank
+loadbank
+```
+
+The GUI shows a shared 16-step groove grid: each lane displays its voice pattern, current cursor, pulse/cycle relationship, and meter. Click a lane to select/audition it, then edit its rhythm and synthesis behaviour from the lower controls.
+
+Each voice also has an editable envelope graph with four tabs: `AMP`, `PITCH`, `FM`, and `NOISE`. These are not cosmetic curves: `AMP` shapes final level, `PITCH` controls pitch drop/rise, `FM` controls modulation depth and metallicity, and `NOISE` controls transient/noise energy. Drag the five breakpoints in the GUI or send `env <voice> <amp|pitch|fm|noise> <point 1-5> <time 0-1> <value 0-1>`. Presets are stored at `~/Documents/Max 9/Library/myseq.polydrum.bank.txt` and include all envelope graphs.
+
+## `myseq.grainmachine~`
+
+`myseq.grainmachine~` is an eight-voice granular drum machine with an internal 32-step sequencer. Each drum hit is generated as a short synthetic micro-source and then reconstructed as a cloud of grains. The voices are `kick`, `snare`, `hat`, `clap`, `tom`, `rim`, `shaker`, and `fx`.
+
+The synthesis engine combines procedural drum bodies, noise excitation, metallic partial banks, reverse grains, inverse/rising envelopes, temporal spray, resynthesis weight, per-voice chaos, bus drive, and a small cross-feedback spatial smear. It can run from its own clock or respond to the standard `myseq` / `megaseq` event list:
+
+```text
+pitch velocity duration_ms channel
+```
+
+Channels 1, 2, and 5 map naturally to kick, snare, and hat. The GUI provides an editable 8×32 step grid, global grain macros, selected-voice sound design controls, live grain-field display, tooltips, and sixteen persistent presets. The preset bank is stored at `~/Documents/Max 9/Library/myseq.grainmachine.bank.txt`.
+
+Common messages:
+
+```text
+start
+stop
+reset
+default
+random
+tempo 132.
+length 16
+param density 0.86
+param graincount 0.72
+param reverse 0.35
+param inverse 0.50
+param resynth 0.85
+trigger kick 1.
+step kick 13 0.8
+voice snare texture 0.9
+pattern hat 1 0 0.7 0 1 0 0.55 0
+clearpattern all
+preset 1 store BrokenDust
+preset 1 recall
+savebank
+loadbank
+```
+
+## `myseq.voicelooper~`
+
+`myseq.voicelooper~` is a stereo real-time vocal sampler, live looper, and granular performance instrument. Feed it a microphone, synth, field recording, or any Max signal; press `REC` to capture a circular loop, `OVERDUB` to layer material, and `FREEZE` to hold the current memory as a playable granular cloud.
+
+The object accepts the same event list used by `myseq` and `megaseq`:
+
+```text
+pitch velocity duration_ms channel
+```
+
+Incoming events trigger pitch-aware grain bursts, so a vocal loop can follow melody or bass patterns while still behaving like an audio effect. The GUI includes a waveform monitor, granular spray field, five modes (`clean`, `cloud`, `choir`, `glitch`, `void`), mutation depth/rate controls, contextual tooltips, and twelve persistent preset slots. The preset bank is stored at `~/Documents/Max 9/Library/myseq.voicelooper.bank.txt`.
+
+Common messages:
+
+```text
+record 1
+record 0
+overdub 1
+freeze 1
+freeze 0
+clear
+random
+mode cloud
+mode choir
+mode glitch
+length 4.
+pitch 7.
+param density 0.72
+param spray 0.85
+trigger 72 118 420 3
+preset 1 store
+preset 1 recall
+savebank
+loadbank
+dump
+```
+
+## `myseq.recorder~`
+
+`myseq.recorder~` is a real-time-safe stereo studio recorder with two signal inputs and two independent monitor outputs. Audio capture is transferred from the DSP thread through a lock-free queue to a dedicated disk writer, preventing file-system stalls from blocking the audio callback. It writes long-session RF64/WAV takes in dithered PCM 16-bit, dithered PCM 24-bit, or IEEE float32.
+
+The GUI provides RECORD, PAUSE/RESUME, STOP and MARK transport controls, stereo peak/RMS meters, scrolling input history, elapsed time, file size, disk-drop diagnostics, clean input gain, independent monitor gain, up to ten seconds of pre-roll, optional transparent monitoring, and an optional soft safety limiter. Unconnected right input automatically records the left input as mono-compatible stereo.
+
+Automatic takes are timestamped in `~/Music/Myseq Recordings/`. `path /custom/take.wav` sets the next destination. Markers are written with time and sample position to a companion `.markers.txt` file. Eight GUI presets and persistent SAVE/LOAD store recording format, gain, pre-roll, monitor, and limiter settings in `~/Documents/Max 9/Library/myseq.recorder.bank.txt`.
+
+Messages include `record 1`, `record /path/take.wav`, `pause 1`, `pause 0`, `stop`, `format pcm24`, `format float32`, `inputgain -3.`, `monitorgain -9.`, `preroll 5.`, `monitor 1`, `limiter 1`, `marker CHORUS`, `preset 1 store`, `savebank`, `loadbank`, and `dump`.
+
+## `myseq.midrouter`
+
+`myseq.midrouter` is a dual-destination MIDI scale translator for connecting `myseq` or `megaseq` to differently tuned modular voices and Max instruments. It accepts the native event format `pitch velocity duration_ms channel` as well as three-item note lists and pitch integers. The left outlet is MODULAR and the right outlet is MAX.
+
+Each destination has independent root, scale, chromatic transpose, octave, MIDI channel, velocity gain, duration scaling, enable state, mapping mode, and output format. `CHROMATIC` preserves semitone intervals, `QUANTIZE` shifts and snaps to a destination scale, and `DIATONIC` translates scale degrees between different source and target scales. Output can remain `EVENT 4`, become `NOTE 3` (`pitch velocity channel`), or use a legacy pitch integer.
+
+The interactive GUI includes live note translation monitoring, route modes (`MODULAR`, `MAX`, `BOTH`, or `OFF`), eight user preset slots, persistent bank save/load, panic, and delayed tooltips. The default bank is stored at `~/Documents/Max 9/Library/myseq.midrouter.bank.txt`.
+
+Core messages include `route both`, `source root 60`, `source scale minor`, `root modular 62`, `scale modular dorian`, `mode modular diatonic`, `transpose max -12`, `channel modular 1`, `format max event`, `preset 1 store`, `savebank`, and `loadbank`.
+
+## `myseq.hybridmixer~`
+
+A sixteen-input hybrid console with a stereo master. Connect the first eight outlets of `adc~ 1 2 3 4 5 6 7 8` to mixer inlets 1–8; `adc~` always follows the audio interface selected globally in Max under **Options → Audio Status**. Mixer inlets 9–16 accept instruments, effects, returns, or any other internal MSP signals.
+
+Every channel includes input trim, high-pass and low-pass filters, drive, gate threshold, equal-power panorama, a -∞ to +12 dB fader, mute, additive solo, polarity inversion, peak/RMS metering, and four processing modes: `CLEAN`, `WARM`, `GATE`, and `EXCITE`. The stereo master provides dual peak/RMS meters, click-safe gain, mute, and a safety limiter.
+
+```text
+fader 1 -6.
+pan 9 -0.35
+trim 2 12.
+hpf 1 80.
+lpf 9 12000.
+drive 9 0.6
+gate 3 -48.
+mode 9 warm
+mute 4 1
+solo 9 1
+phase 2 1
+label 9 MELODY
+master -3.
+mastermute 0
+limiter 1
+reset
+dump
+```
+
+Sixteen persistent snapshots store the complete channel and master configuration:
+
+```text
+preset 1 store HybridSet
+preset 1 recall
+preset save
+preset load
+```
+
+## Amoeba Outputs
+
+`Amoeba Outputs` is a family of ten speaker-aware spatial processors. Each object accepts one audio signal and creates between 1 and 18 discrete MSP signal outlets. Choose the physical outlet count when the object is created:
+
+```text
+amoeba.outputs.orbit~ @outputs 8
+amoeba.outputs.swarm~ @outputs 12
+amoeba.outputs.granular~ @outputs 18
+```
+
+The outlet count is structural and therefore requires object recreation when changed. Every interface contains a radial speaker editor: drag numbered speaker nodes to match the physical room, use the selected-speaker azimuth/distance/elevation controls for precise placement, and drag the central amoeba core to offset the complete trajectory. `CIRCLE`, `FRONT`, `DOME`, and `RANDOM` create starting layouts.
+
+The spatializer uses normalized equal-power distance panning against the edited speaker coordinates rather than assuming evenly spaced speakers. The ten organic motion systems are:
+
+- `amoeba.outputs.orbit~`: eccentric orbits, precession, comet paths, and gravity wells.
+- `amoeba.outputs.swarm~`: flocking agents with cohesion, separation, panic, and murmuration.
+- `amoeba.outputs.flow~`: curl-field advection, tides, rapids, and turbulent streams.
+- `amoeba.outputs.growth~`: branching tips, phyllotaxis, fern, coral, and bloom structures.
+- `amoeba.outputs.physarum~`: nutrient-seeking slime agents and connected vein behavior.
+- `amoeba.outputs.membrane~`: elastic-body waves, surface tension, stretch, and rupture.
+- `amoeba.outputs.vortex~`: paired counter-rotating vortices and spiral attractors.
+- `amoeba.outputs.brownian~`: inertial random walks from dust through plasma motion.
+- `amoeba.outputs.granular~`: four-second multihead time grains distributed as a moving cloud.
+- `amoeba.outputs.constellation~`: speaker-aware Lissajous nodes, webs, and spatial galaxies.
+
+All objects also accept the standard sequencer event list. Events inject velocity- and pitch-dependent energy into the active spatial behavior:
+
+```text
+pitch velocity duration_ms channel
+```
+
+### Speaker geometry and performance messages
+
+```text
+speaker 1 -45. 1.0 0.
+speaker 2 45. 0.85 25.
+layout circle
+layout front
+layout dome
+layout random
+center 0.2 -0.15
+auto 1
+freeze 1
+bypass 1
+character random
+param 1 0.5
+set turbulence 0.72
+randomize
+reset
+dump
+```
+
+`speaker` arguments are `one_based_output azimuth_degrees distance elevation_degrees`. Each module and outlet count owns an independent 16-slot persistent preset bank. Presets retain all twelve behavior controls, the core position, automation state, and coordinates for all eighteen possible speakers.
+
+```text
+preset 1 store MyRoom
+preset 1 recall
+preset save
+preset load
+```
+
+## Massive module expansion
+
+Ten additional MSP modules extend `megaseq` into physical modeling, rewriting systems, cellular growth, modulation, buffering, filtering, delay, resonance, and biological dynamics. Every module uses the same resizable interactive shell: stereo scope, four-corner morph field, twelve algorithm-specific controls, mutation, automatic motion, freeze, randomization, tooltips, and 16 independent persistent user presets.
+
+All ten objects accept the standard `megaseq` event format:
+
+```text
+pitch velocity duration_ms channel
+```
+
+The event instruments generate sound directly. Audio processors use incoming events as additional excitation or modulation. Every object also has two signal inlets and two signal outlets; a mono signal connected to inlet 1 is copied automatically when needed.
+
+### Event instruments
+
+- `myseq.physpluck~`: 12-voice Karplus–Strong string field with stiffness, dispersion, body resonance, nonlinear tension, sympathetic input coupling, and per-note material variation.
+- `myseq.physdrum~`: nonlinear membrane and eight-mode percussion model that morphs between skin, frame, plate, and fractured materials.
+- `myseq.lsystem~`: polyphonic rewriting-grammar synthesizer whose branches control FM routing, ratios, drift, wavefolding, and generational depth.
+- `myseq.growth~`: cellular oscillator colony with logistic growth, diffusion, mutation, cell division, coupling, and polyphonic emergence/collapse envelopes.
+
+Suggested routing:
+
+```text
+megaseq outlet 4 -> myseq.physpluck~
+megaseq outlet 1 -> myseq.physdrum~
+megaseq outlet 4 -> myseq.lsystem~
+megaseq outlet 4 -> myseq.growth~
+```
+
+Change `channel` or enable `omni 1` to connect them to another `megaseq` voice.
+
+### Audio processors and modulators
+
+- `myseq.multifilter~`: stereo state-variable bank with LP/BP/HP/notch morphing, dual formants, envelope/note following, nonlinear drive, and orbital cutoff motion.
+- `myseq.multidelay~`: eight-tap stereo delay whose tap positions behave as spring-mass orbits inside a cross-feedback diffusion matrix.
+- `myseq.bufferlab~`: eight-second multihead buffer with scanning, variable speed, reverse populations, granular offsets, smear, jitter, feedback, and freeze.
+- `myseq.modfield~`: coupled-oscillator and Lorenz-attractor field; without input it generates stereo modulation/audio, while incoming audio can be ring/frequency modulated by the field.
+- `myseq.resonator~`: twelve-mode stereo physical resonator that morphs between string, wood, plate, and cathedral-like structures; audio and MIDI events can excite it simultaneously.
+- `myseq.biogate~`: reaction-diffusion multiband dynamics processor in which frequency-band gates grow, diffuse, mutate, compete, and decay.
+
+Suggested audio chain:
+
+```text
+instrument~
+-> myseq.multifilter~
+-> myseq.multidelay~
+-> myseq.bufferlab~
+-> myseq.resonator~
+-> myseq.biogate~
+-> myseq.visualizer~
+```
+
+### Common messages
+
+```text
+60 110 650 3
+bang
+bypass 1
+freeze 1
+motion 1
+mutate 1 0.45 0.22
+xy 0.72 0.35 0.68
+character random
+randomize
+param 1 0.75
+set cutoff 0.62
+channel 3
+omni 0
+clear
+dump
+```
+
+Algorithm-specific parameter names can also be sent directly as normalized values, for example `feedback 0.72`, `growth 0.8`, `dispersion 0.55`, or `coupling 0.4`.
+
+### Persistent presets
+
+Each new module owns a separate 16-slot bank in `~/.myseq/presets/`. The bank stores all twelve manual parameters, XY position, morph mix, mutation depth/rate, and motion/mutation state.
+
+```text
+preset 1 store MyState
+preset 1 recall
+preset 1 clear
+preset list
+preset save
+preset load
+```
+
+## `myseq.visualizer~`
+
+An insertable stereo analysis instrument with transparent audio passthrough. Connect any mono or stereo `myseq` instrument to visualize it without changing the signal. A mono connection to inlet 1 is automatically copied to both outputs.
+
+The interactive GUI provides six views:
+
+- `OVERVIEW`: spectrum, waveform, phase, levels, and frequency bands in one dashboard.
+- `SPECTRUM`: left/right logarithmic FFT with dominant frequency and spectral centroid.
+- `SPECTROGRAM`: scrolling frequency-over-time color history.
+- `SPRAY`: energy-driven particles positioned by frequency and amplitude.
+- `PHASE`: stereo vectorscope, correlation, and mid/side behavior.
+- `METERS`: peak, RMS, six frequency bands, stereo width, balance, and crest factor.
+
+```text
+myseq.visualizer~
+mode overview
+mode spectrum
+mode spectrogram
+mode spray
+mode phase
+mode meters
+freeze 1
+peakhold 1
+reset
+reference -72.
+smoothing 0.72
+trail 0.94
+spray 0.72
+hue 0.54
+fft 2048
+range 20 20000
+dump
+```
+
+All modes, freeze, peak hold, FFT resolution, visual range, color, persistence, and particle density are editable directly from the GUI. Contextual tooltips explain every control.
 
 ## `myseq.timecode~`
 
