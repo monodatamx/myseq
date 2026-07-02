@@ -1,10 +1,36 @@
 # myseq instruments
 
-Max/MSP instruments for the five outputs of `myseq`, plus generative sequencers, live effects, granular reverb, real-time vocal looping, experimental drum synthesis, and timecode synchronization.
+Max/MSP instruments for the expanded `myseq` suite: generative sequencing, procedural instruments, live effects, granular reverb, real-time vocal looping, experimental drum synthesis, analysis tools, and timecode synchronization.
+
+## `myseq`
+
+`myseq` is the canonical generative sequencer for the suite. This build keeps the original `myseq` interaction model and expands the output bus to control `myseq.polydrum~` directly.
+
+Outlets, left to right:
+
+1. kick, MIDI event channel 1
+2. snare, MIDI event channel 2
+3. hihat, MIDI event channel 3
+4. clap, MIDI event channel 4
+5. tom, MIDI event channel 5
+6. rim, MIDI event channel 6
+7. shaker, MIDI event channel 7
+8. fx percussion, MIDI event channel 8
+9. melody, MIDI event channel 9
+10. harmony / counterpoint, MIDI event channel 10
+11. bass, MIDI event channel 11
+
+Each outlet emits:
+
+```text
+pitch velocity duration_ms channel
+```
+
+The first eight outlets are aligned with `myseq.polydrum~`. The last three tonal outlets are intended for melody, counterpoint / harmony, and bass instruments or MIDI routing.
 
 ## `myseq.polydrum~`
 
-`myseq.polydrum~` is a procedural drum synthesizer module designed to be sequenced externally by `megaseq`. It has its own synthesis engine instead of reusing the granular drum core: kick, snare, hat, clap, tom, rim, shaker, and fx are rendered as dedicated FM/physical/noise drum voices with bounded variation.
+`myseq.polydrum~` is a procedural drum synthesizer module designed to be sequenced externally by `myseq`. It has its own synthesis engine instead of reusing the granular drum core: kick, snare, hat, clap, tom, rim, shaker, and fx are rendered as dedicated FM/physical/noise drum voices with bounded variation.
 
 The eight voices are `kick`, `snare`, `hat`, `clap`, `tom`, `rim`, `shaker`, and `fx`. Each voice owns `body`, `punch`, `fmratio`, `fmindex`, `noise`, `pan`, `tune`, and `gain`. Global macros shape the complete system: `input dynamics`, `transient flam`, `morph memory`, `grain scatter`, `repeat energy`, `body color`, `transient`, `mutation`, and `room`.
 
@@ -44,7 +70,7 @@ savebank
 loadbank
 ```
 
-The GUI shows a voice bay instead of an internal sequencer. Click a voice to select/audition it, watch its meter, then edit synthesis behavior from the lower controls. Pattern editing belongs in `megaseq`, which now has dedicated percussion outputs for all Polydrum voices.
+The GUI shows a voice bay instead of an internal sequencer. Click a voice to select/audition it, watch its meter, then edit synthesis behavior from the lower controls. Pattern editing belongs in `myseq`, whose first eight outlets now map directly to all Polydrum voices.
 
 Each voice also has an editable envelope graph with four tabs: `AMP`, `PITCH`, `FM`, and `NOISE`. These are not cosmetic curves: `AMP` shapes final level, `PITCH` controls pitch drop/rise, `FM` controls modulation depth and metallicity, and `NOISE` controls transient/noise energy. Drag breakpoints in the GUI, Option-click empty envelope space to add a point, or Option-click an inner point to remove it. Each curve supports 2–16 points. Presets are stored at `~/Documents/Max 9/Library/myseq.polydrum.bank.txt` and include all envelope graphs.
 
